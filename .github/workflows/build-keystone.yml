@@ -1,37 +1,40 @@
-name: Build Keystone Engine ARM64
+name: Build All Wheels ARM64
 
-# Script ini akan berjalan saat ada perubahan (push) atau dijalankan manual
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build-wheel:
-    # INI KUNCI UTAMANYA: Menggunakan mesin ARM64 dengan Ubuntu 24.04
-    runs-on: ubuntu-24.04-arm 
+  build-wheels:
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12 (Sesuai Ubuntu Chroot kamu)
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependensi build (C++)
+      - name: Install System Dependencies (C++, CMake, Crypto)
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake
+          sudo apt-get upgrade -y
+          sudo apt-get install -y build-essential cmake libssl-dev libffi-dev
 
-      - name: Build Keystone Engine Wheel
+      - name: Build Wheels dari requirements.txt
         run: |
-          pip wheel keystone-engine
+          # Membuat folder khusus untuk menampung semua hasil compile
+          mkdir wheelhouse
+          
+          # PIP akan membaca file requirements.txt dan menaruh hasilnya di folder wheelhouse
+          pip wheel -r requirements.txt -w ./wheelhouse
 
-      - name: Upload hasil file .whl agar bisa didownload
+      - name: Upload Semua File .whl
         uses: actions/upload-artifact@v4
         with:
-          name: keystone-engine-wheel-arm64
-          path: "*.whl"
+          name: all-python-wheels-arm64
+          path: ./wheelhouse/*.whl
           retention-days: 5
