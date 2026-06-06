@@ -1,0 +1,37 @@
+name: Build Keystone Engine ARM64
+
+# Script ini akan berjalan saat ada perubahan (push) atau dijalankan manual
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-wheel:
+    # INI KUNCI UTAMANYA: Menggunakan mesin ARM64 dengan Ubuntu 24.04
+    runs-on: ubuntu-24.04-arm 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12 (Sesuai Ubuntu Chroot kamu)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependensi build (C++)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Build Keystone Engine Wheel
+        run: |
+          pip wheel keystone-engine
+
+      - name: Upload hasil file .whl agar bisa didownload
+        uses: actions/upload-artifact@v4
+        with:
+          name: keystone-engine-wheel-arm64
+          path: "*.whl"
+          retention-days: 5
